@@ -16,14 +16,15 @@ interface FancyMessageProps {
     title: string;
     description: string;
     imageUrl: string; // imageUrl should be of type string
+	color: number;
 }
 
-function FancyMessage({ title, description, imageUrl }: FancyMessageProps) {
+function FancyMessage({ title, description, imageUrl, color }: FancyMessageProps) {
     return (
         <Embed
             title={title}
             description={description}
-            color={0x00ff00}
+            color={color}
             image={{ url: imageUrl.toString() }} // Convert URL object to string
         />
     );
@@ -195,6 +196,32 @@ const commands: Command[] = [
 		run: async ({ interaction, reacord }) => {
 			const items = await fetchSkyBlockItems();
 			const jsonData = await fetchImages();
+
+			// Define your rarity weights
+			const itemRarity = {
+				"COMMON": 30,
+				"UNCOMMON": 20,
+				"RARE": 10,
+				"EPIC": 8,
+				"LEGENDARY": 5,
+				"MYTHIC": 2,
+				"DIVINE": 1, //
+				"SPECIAL": 4, // Rare but not as rare as Mythic or Divine
+				"VERY_SPECIAL": 0.5 //
+			};
+
+			const itemColor = {
+				"COMMON": parseInt("C2C2C2", 16), // Grey
+				"UNCOMMON": parseInt("71DC11", 16), // Green
+				"RARE": parseInt("1195DC", 16), // Blue
+				"EPIC": parseInt("8611DC", 16), // Purple
+				"LEGENDARY": parseInt("E8C515", 16), // Gold
+				"MYTHIC": parseInt("D115E8", 16), // Purple
+				"DIVINE": parseInt("15DEE8", 16), // Light blue
+				"SPECIAL": parseInt("CB2A2A", 16), // Red
+				"VERY_SPECIAL": parseInt("FC0000", 16) // Different red
+			};
+
         if (!items) {
             interaction.reply('Failed to fetch SkyBlock items. Please try again later.');
             return;
@@ -202,10 +229,35 @@ const commands: Command[] = [
 
 		// Function to simulate a gambling roll
 		function rollForItem(items) {
-    	// Simulate a random roll to select an item
-    		const randomIndex = Math.floor(Math.random() * items.length);
-    		return items[randomIndex];
+			// Calculate total weight based on rarity weights
+			const totalWeight = Object.values(itemRarity).reduce((acc, weight) => acc + weight, 0);
+			
+			// Generate a random number between 0 and totalWeight
+			const randomNum = Math.random() * totalWeight;
+
+			// Iterate through rarity weights and check where the random number falls
+			let cumulativeWeight = 0;
+			for (const [rarity, weight] of Object.entries(itemRarity)) {
+				cumulativeWeight += weight;
+				if (randomNum <= cumulativeWeight) {
+					// console.log("Selected rarity:", rarity);
+
+					// Filter items by the selected rarity
+					const itemsWithRarity = items.filter(item => item.tier === rarity);
+
+					// If items are found, select a random item and return it
+					if (itemsWithRarity.length > 0) {
+						const randomIndex = Math.floor(Math.random() * itemsWithRarity.length);
+						console.log(itemsWithRarity[randomIndex]);
+						return itemsWithRarity[randomIndex];
+					}
+				}
+			}
+
+			console.log("No items found for any rarity.");
+			return null; // Return null if no items found for any rarity
 		}
+
         function getImageUrl(rolledItem, jsonData) {
 			const itemId = rolledItem.id;
 			const realId = jsonData['itemHash.json'][itemId];
@@ -218,6 +270,8 @@ const commands: Command[] = [
         // Simulate a gambling roll
         const rolledItem = rollForItem(items);
 		const imageUrl = getImageUrl(rolledItem, jsonData);
+		const embedColor = itemColor[rolledItem.tier];
+		// console.log(embedColor);
 		// Function to get the image URL for the rolled item
 		
 
@@ -257,7 +311,7 @@ const commands: Command[] = [
             await userProfile.save();
 			reacord
 				.createInteractionReply(interaction)
-				.render(<FancyMessage title={"🎆You won " + rolledItem.name} description={"Check your inventory using /inventory"} imageUrl={imageUrl} />)
+				.render(<FancyMessage title={"You won " + rolledItem.name} description={"Item rarity: " + rolledItem.tier + "\nCheck your inventory using /inventory"} imageUrl={imageUrl} color={embedColor} />)
 			} catch (error) {
 				console.error('Error awarding item to user:', error.message);
 				interaction.reply('Failed to award item. Please try again later.');
@@ -268,7 +322,7 @@ const commands: Command[] = [
 		name: "trade",
 		description: "Trade your items",
 		run: async ({ interaction, reacord }) => {
-			interaction.reply(`on gang! `);
+			interaction.reply(`on gang ! `);
 		},
 	},
 ]
