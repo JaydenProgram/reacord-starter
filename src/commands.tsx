@@ -5,12 +5,13 @@ import {
 	Client,
 } from "discord.js"
 import { ReacordDiscordJs } from "reacord"
-import { Counter } from "./counter"
 const UserProfile = require('./economy/UserProfile');
 const mongoose = require('mongoose');
 import { fetchSkyBlockItems } from "./economy/ItemGamble";
 import { fetchImages } from "./economy/ItemGamble";
 import { Embed } from "reacord"
+import { getItemNetworth, getPrices } from "skyhelper-networth";
+
 
 interface FancyMessageProps {
     title: string;
@@ -30,6 +31,7 @@ function FancyMessage({ title, description, imageUrl, color }: FancyMessageProps
     );
 }
 
+
 type Command = {
 	name: string
 	description: string
@@ -42,6 +44,7 @@ type CommandContext = {
 	client: Client
 	reacord: ReacordDiscordJs
 }
+
 
 const commands: Command[] = [
 	{
@@ -68,7 +71,7 @@ const commands: Command[] = [
 					if (lastDailyDate === currentDate) {
 						reacord
 						.createInteractionReply(interaction)
-						.render(<FancyMessage title="You already collected your daily today🤣" description="Come back tommorow🙄" imageUrl="" />)
+						.render(<FancyMessage title="You already collected your daily today🤣" description="Come back tommorow🙄" imageUrl="" color={0xF70404}/>)
 						return;
 					}
 				} else {
@@ -84,7 +87,7 @@ const commands: Command[] = [
 
 				reacord
 					.createInteractionReply(interaction)
-					.render(<FancyMessage title={dailyAmount + "was added to your balance. 💵"} description={"New balance:" + userProfile.balance} imageUrl=""/>)
+					.render(<FancyMessage title={dailyAmount + "was added to your balance. 💵"} description={"New balance:" + userProfile.balance} imageUrl="" color={0x04F704}/>)
 			} catch (error) {
 				console.log(`Error handling /daily: ${error}`)
 			}
@@ -121,8 +124,8 @@ const commands: Command[] = [
 
 				reacord
 				.createInteractionReply(interaction)
-				.render(targetUserId === interaction.user.id ? <FancyMessage title="💵" description={"Your balance is $" + userProfile.balance} imageUrl="" /> : 
-				<FancyMessage title="💵" description={targetMember.displayName + "'s balance is $" + userProfile.balance} imageUrl="" />)
+				.render(targetUserId === interaction.user.id ? <FancyMessage title="💵" description={"Your balance is $" + userProfile.balance} imageUrl="" color={0x04F704}/> : 
+				<FancyMessage title="💵" description={targetMember.displayName + "'s balance is $" + userProfile.balance} imageUrl="" color={0x04F704}/>)
 			} catch (error) {
 				console.log(`Error handling /balance: ${error}`)
 			}
@@ -146,7 +149,7 @@ const commands: Command[] = [
 				});
 				return;
 			}
-			const amount = interaction.options.getNumber('amount');
+			const amount: number = interaction.options.getNumber('amount');
 	
 			if (amount < 10 ) {
 				interaction.reply('You must gamble more than 10 coins broke ahh');
@@ -176,7 +179,7 @@ const commands: Command[] = [
 	
 				reacord
 				.createInteractionReply(interaction)
-				.render(<FancyMessage title="You didnt win anything!🥱" description="Most gamblers stop before their big win❗" imageUrl="" />)
+				.render(<FancyMessage title="You didnt win anything!🥱" description="Most gamblers stop before their big win❗" imageUrl="" color={0xFF0000} />)
 				return;
 			}
 	
@@ -187,7 +190,7 @@ const commands: Command[] = [
 	
 			reacord
 				.createInteractionReply(interaction)
-				.render(<FancyMessage title={"🎆You won $" + amountWon} description={"💵Your new balance is $" + userProfile.balance} imageUrl="" />)
+				.render(<FancyMessage title={"🎆You won $" + amountWon} description={"💵Your new balance is $" + userProfile.balance} imageUrl="" color={0x55FF00} />)
 		},
 	},
 	{
@@ -267,10 +270,16 @@ const commands: Command[] = [
 			}
 			return null;	
   		}
+
+		
+
         // Simulate a gambling roll
-        const rolledItem = rollForItem(items);
-		const imageUrl = getImageUrl(rolledItem, jsonData);
+        const rolledItem = await rollForItem(items);
+		const imageUrl = await getImageUrl(rolledItem, jsonData);
 		const embedColor = itemColor[rolledItem.tier];
+
+		
+		
 		// console.log(embedColor);
 		// Function to get the image URL for the rolled item
 		

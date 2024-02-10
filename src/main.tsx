@@ -19,6 +19,7 @@ async function startBot() {
 
     setupCommands(client, reacord);
 
+    
     client.once("ready", () => {
         console.info("Ready!");
     });
