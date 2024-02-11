@@ -22,6 +22,42 @@ export async function fetchSkyBlockItems() {
     }
 }
 
+// Function to fetch SkyBlock items data from the API
+export async function fetchBazaarItems() {
+  try {
+      // Dynamically import 'node-fetch'
+      const fetch = (await import('node-fetch')).default;
+
+      const response = await fetch('https://api.hypixel.net/v2/skyblock/bazaar');
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.products;
+  } catch (error) {
+      console.error('Error fetching SkyBlock items:', error.message);
+      return null;
+  }
+}
+
+// Function to fetch SkyBlock items data from the API
+export async function fetchAuctionItems() {
+  try {
+      // Dynamically import 'node-fetch'
+      const fetch = (await import('node-fetch')).default;
+
+      const response = await fetch('https://api.hypixel.net/v2/skyblock/auctions');
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.auctions;
+  } catch (error) {
+      console.error('Error fetching SkyBlock items:', error.message);
+      return null;
+  }
+}
+
 
 
 export async function fetchImages() {
