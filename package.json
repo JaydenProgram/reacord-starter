@@ -9,7 +9,7 @@
 		"dev": "run-p --print-label --race dev:*",
 		"dev:build": "npm run build -- --watch",
 		"dev:nodemon": "nodemon .",
-		"build": "tsup src/main.tsx --target node16",
+		"build": "tsup src/main.jsx --target node16",
 		"start": "cross-env NODE_ENV=production node .",
 		"lint": "eslint . --cache --report-unused-disable-directives",
 		"format": "prettier . --write --cache"
