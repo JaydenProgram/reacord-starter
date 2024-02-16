@@ -1,9 +1,12 @@
+import { fetchPrices } from "../economy/fetchPrices";
+
 const UserProfile = require('../economy/UserProfile');
 const { Client } = require("discord.js");
 const { ReacordDiscordJs } = require("reacord");
 const { Embed } = require("reacord");
 const { fetchSkyBlockItems, fetchImages } = require("../economy/ItemGamble");
 const { FancyMessage } = require("../reactComponents/fancyMessage");
+const { checkItemPrice } = require("../economy/checkItemPrice");
 
 async function itemGamblerCommandLogic({ interaction, reacord }) {
     let gamblingInProgress = false;
@@ -15,10 +18,11 @@ async function itemGamblerCommandLogic({ interaction, reacord }) {
     gamblingInProgress = true;
     const items = await fetchSkyBlockItems();
     const jsonData = await fetchImages();
+    const itemsPrice = await fetchPrices();
     
     const itemRarity = {
-        "COMMON": 30,
-        "UNCOMMON": 20,
+        "COMMON": 60,
+        "UNCOMMON": 25,
         "RARE": 10,
         "EPIC": 8,
         "LEGENDARY": 3.5,
@@ -77,8 +81,10 @@ async function itemGamblerCommandLogic({ interaction, reacord }) {
     const imageUrl = await getImageUrl(rolledItem, jsonData);
     const embedColor = itemColor[rolledItem.tier];
     const jsonItem = JSON.stringify(rolledItem);
+    const itemIdLowercase = rolledItem.id.toLowerCase();
     const percentageCalculate = (itemRarity[rolledItem.tier] / Object.values(itemRarity).reduce((acc, weight) => acc + weight, 0)) * 100;
     const itemPercentage = percentageCalculate.toFixed(2) + "%";
+    const itemPriceInfo = checkItemPrice(rolledItem, itemsPrice);
     try {
         let userProfile = await UserProfile.findOne({
             userId: interaction.user.id,
@@ -113,7 +119,8 @@ async function itemGamblerCommandLogic({ interaction, reacord }) {
         await userProfile.save();
         reacord
             .createInteractionReply(interaction)
-            .render(<FancyMessage title={"You won " + rolledItem.name + "("+itemPercentage+")"} description={"Item rarity: " + rolledItem.tier + "\nCheck your inventory using /inventory"} imageUrl={imageUrl} color={embedColor} />);
+            .render(<FancyMessage title={"You won " + rolledItem.name + "("+itemPercentage+")"} description={"Item rarity: " + rolledItem.tier + "\nCheck your inventory using /inventory"
+            + `\n**`+itemPriceInfo+`**` + `<:skyblockCoin:1207367829980975104>`} imageUrl={imageUrl} color={embedColor} />);
         } catch (error) {
             console.error('Error awarding item to user:', error.message);
             if (error.code === 10062) {

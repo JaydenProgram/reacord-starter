@@ -8,7 +8,7 @@ const { dailyCommand } = require('./commands/dailyCommand');
 const { balanceCommand } = require('./commands/balanceCommand');
 const { gambleCommand } = require('./commands/gambleCommand');
 const { itemGamblerCommand } = require('./commands/itemGamblerCommand');
-const { pingCommand } = require('./commands/pingCommand');
+const { intentoryCommand } = require('./commands/inventoryCommand');
 
 
 
@@ -20,7 +20,7 @@ const commands = [
     balanceCommand,
     gambleCommand,
     itemGamblerCommand,
-    pingCommand,
+    intentoryCommand,
 ];
 
 function setupCommands(client, reacord) {
